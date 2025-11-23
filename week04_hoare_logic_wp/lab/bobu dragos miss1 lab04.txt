@@ -1,0 +1,101 @@
+// Lab 4 — Verified Dafny solutions, warnings removed
+
+method Max3(a: int, b: int, c: int) returns (max: int)
+  ensures max >= a && max >= b && max >= c
+  ensures max == a || max == b || max == c
+{
+  var m := if a >= b then a else b;
+  max := if m >= c then m else c;
+}
+
+method MinMax2(a: int, b: int) returns (mn: int, mx: int)
+  ensures (mn == a || mn == b) && (mx == a || mx == b)
+  ensures mn <= mx
+  ensures mn <= a && mn <= b
+  ensures mx >= a && mx >= b
+{
+  if a <= b {
+    mn, mx := a, b;
+  } else {
+    mn, mx := b, a;
+  }
+}
+
+method AbsDiff(a: int, b: int) returns (diff: int)
+  ensures diff >= 0
+  ensures (a >= b ==> diff == a - b)
+  ensures (b >  a ==> diff == b - a)
+  ensures diff == if a >= b then a - b else b - a
+  ensures (diff == 0) == (a == b)
+  ensures diff == (if a - b >= 0 then a - b else -(a - b))
+{
+  if a >= b {
+    diff := a - b;
+  } else {
+    diff := b - a;
+  }
+}
+
+method ArrayMax(a: array<int>) returns (max: int)
+  requires a.Length > 0
+  ensures exists k :: 0 <= k < a.Length && max == a[k]
+  ensures forall j :: 0 <= j < a.Length ==> max >= a[j]
+{
+  max := a[0];
+  var i := 1;
+  while i < a.Length
+    invariant 1 <= i <= a.Length
+    invariant forall j :: 0 <= j < i ==> max >= a[j]
+    invariant exists j :: 0 <= j < i && max == a[j]
+    decreases a.Length - i
+  {
+    if a[i] > max { max := a[i]; }
+    i := i + 1;
+  }
+}
+
+method ArrayMin(a: array<int>) returns (mn: int)
+  requires a.Length > 0
+  ensures exists k :: 0 <= k < a.Length && mn == a[k]
+  ensures forall j :: 0 <= j < a.Length ==> mn <= a[j]
+{
+  mn := a[0];
+  var i := 1;
+  while i < a.Length
+    invariant 1 <= i <= a.Length
+    invariant forall j :: 0 <= j < i ==> mn <= a[j]
+    invariant exists j :: 0 <= j < i && mn == a[j]
+    decreases a.Length - i
+  {
+    if a[i] < mn { mn := a[i]; }
+    i := i + 1;
+  }
+}
+
+method MaxMinDiff(a: array<int>) returns (d: int)
+  requires a.Length > 0
+  ensures d >= 0
+  ensures exists i, j ::
+            0 <= i < a.Length && 0 <= j < a.Length &&
+            d == a[i] - a[j] &&
+            (forall k :: 0 <= k < a.Length ==> a[i] >= a[k]) &&
+            (forall k :: 0 <= k < a.Length ==> a[j] <= a[k])
+  ensures forall x, y :: (0 <= x < a.Length && 0 <= y < a.Length) ==> d >= a[x] - a[y]
+{
+  var mn := a[0];
+  var mx := a[0];
+  var i := 1;
+  while i < a.Length
+    invariant 1 <= i <= a.Length
+    invariant forall j :: 0 <= j < i ==> (mn <= a[j] && a[j] <= mx)
+    invariant exists j :: 0 <= j < i && mn == a[j]
+    invariant exists j :: 0 <= j < i && mx == a[j]
+    invariant mn <= mx
+    decreases a.Length - i
+  {
+    if a[i] < mn { mn := a[i]; }
+    if a[i] > mx { mx := a[i]; }
+    i := i + 1;
+  }
+  d := mx - mn;
+}
